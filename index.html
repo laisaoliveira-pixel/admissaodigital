@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerador de Importacao - Bernhoeft</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-logo">
+        <div class="logo-mark">B</div>
+        <div class="logo-text">
+          <span class="logo-name">BERNHOEFT</span>
+          <span class="logo-sub">Contadores Associados</span>
+        </div>
+      </div>
+      <div class="header-badge">
+        <span class="badge-dot"></span>
+        Gerador de Importacao
+      </div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">Ferramenta Interna</div>
+      <h1 class="hero-title">Admissão <em> Importada</em></h1>
+      <p class="hero-desc">Selecione o tipo de contrato, importe a Ficha Cadastral Bernhoeft em XLS e receba o arquivo
+        de importacao pronto para o sistema único.</p>
+      <div class="hero-steps">
+        <div class="hero-step"><span>1</span> Tipo de contrato</div>
+        <div class="hero-arrow">&#8594;</div>
+        <div class="hero-step"><span>2</span> Importar planilha</div>
+        <div class="hero-arrow">&#8594;</div>
+        <div class="hero-step"><span>3</span> JSON gerado</div>
+      </div>
+    </div>
+  </div>
+
+  <main class="main">
+
+    <!-- CARD 1 -->
+    <section class="card" id="card-tipo">
+      <div class="card-header">
+        <div class="card-step">01</div>
+        <div>
+          <h2 class="card-title">Tipo de Contrato</h2>
+          <p class="card-desc">Selecione o tipo antes de importar a planilha.</p>
+        </div>
+      </div>
+      <div class="tipo-grid">
+        <button class="tipo-btn" id="btn-estagiario" type="button" onclick="selecionarTipo('estagiario')">
+          <div class="tipo-icon-wrap">&#127891;</div>
+          <div class="tipo-info"><strong>Estagiario</strong><span>Contrato de estagio</span></div>
+          <div class="tipo-check" id="check-estagiario">&#10003;</div>
+        </button>
+        <button class="tipo-btn" id="btn-clt" type="button" onclick="selecionarTipo('clt')">
+          <div class="tipo-icon-wrap">&#128188;</div>
+          <div class="tipo-info"><strong>CLT</strong><span>Carteira assinada</span></div>
+          <div class="tipo-check" id="check-clt">&#10003;</div>
+        </button>
+        <button class="tipo-btn" id="btn-autonomo" type="button" onclick="selecionarTipo('autonomo')">
+          <div class="tipo-icon-wrap">&#129309;</div>
+          <div class="tipo-info"><strong>Autonomo</strong><span>Prestacao de servicos</span></div>
+          <div class="tipo-check" id="check-autonomo">&#10003;</div>
+        </button>
+      </div>
+    </section>
+
+    <!-- CARD 2 -->
+    <section class="card" id="card-upload">
+      <div class="card-header">
+        <div class="card-step">02</div>
+        <div>
+          <h2 class="card-title">Importar Ficha Cadastral</h2>
+          <p class="card-desc">Clique na area abaixo ou arraste o arquivo <strong>.xls / .xlsx</strong>.</p>
+        </div>
+        <div id="tipo-badge" class="tipo-sel-badge" style="display:none;"></div>
+      </div>
+      <div id="dropzone" class="dropzone" onclick="clicarUpload()"
+        ondragover="event.preventDefault(); this.classList.add('hover');" ondragleave="this.classList.remove('hover');"
+        ondrop="onDrop(event);">
+        <div class="dz-icon" id="dz-icon">&#128194;</div>
+        <p class="dz-title" id="dz-title">Clique aqui para selecionar a planilha</p>
+        <p class="dz-sub" id="dz-sub">ou arraste o arquivo &nbsp;&#183;&nbsp; .xls / .xlsx</p>
+      </div>
+      <input type="file" id="file-input" accept=".xls,.xlsx" style="display:none;" onchange="onFileSelect(event)" />
+      <p id="upload-hint" class="upload-hint">Selecione o tipo de contrato acima antes de importar.</p>
+    </section>
+
+    <!-- CARD 3 -->
+    <section class="card" id="card-preview" style="display:none;">
+      <div class="card-header">
+        <div class="card-step">03</div>
+        <div>
+          <h2 class="card-title">Revisao dos Dados</h2>
+          <p class="card-desc">Verifique os dados importados antes de gerar o arquivo.</p>
+        </div>
+        <button class="btn-outline" type="button" onclick="reiniciar()">&#8617; Recomecar</button>
+      </div>
+      <div id="preview-badge-wrap"></div>
+      <div id="preview-container" class="preview-container"></div>
+      <div class="card-actions">
+        <button class="btn-outline" type="button" onclick="reiniciar()">&#8617; Recomecar</button>
+        <button class="btn-primary" type="button" id="btn-gerar" onclick="gerarOutput()">
+          Gerar Arquivo de Importacao
+        </button>
+      </div>
+    </section>
+
+    <!-- CARD 4 -->
+    <section class="card" id="card-output" style="display:none;">
+      <div class="card-header">
+        <div class="card-step">04</div>
+        <div>
+          <h2 class="card-title">Arquivo Gerado</h2>
+          <p class="card-desc" id="output-subtitle">Pronto! Copie ou baixe abaixo.</p>
+        </div>
+        <button class="btn-outline" type="button" onclick="reiniciar()">&#8617; Nova Importacao</button>
+      </div>
+      <div class="output-bar">
+        <div id="output-badge" class="output-fmt-badge"></div>
+        <div class="output-btns">
+          <button class="btn-copy" type="button" id="btn-copy" onclick="copiar()">Copiar</button>
+          <button class="btn-download" type="button" onclick="baixar()">Baixar arquivo</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <pre id="output-pre"></pre>
+      </div>
+      <div class="card-actions" style="margin-top:16px;border-top:1px solid var(--border);padding-top:20px;">
+        <button class="btn-outline" type="button" onclick="reiniciar()">&#8617; Nova Importacao</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="logo-mark small">B</div>
+        <span>Bernhoeft Contadores Associados</span>
+      </div>
+      <span class="footer-copy">Ferramenta interna &copy; 2025</span>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- SheetJS no final do body -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    // =============================================
+    // BERNHOEFT - Gerador de Importacao
+    // Leitor da FICHA BERNHOEFT (.xlsx)
+    // Estrutura: formulario vertical
+    //   col B (idx 1) = rotulo, col E (idx 4) = valor principal
+    //   col O (idx 14) ou S (idx 18) = campos secundarios
+    // =============================================
+
+    var STATE = { tipo: null, dados: null, outputStr: null, outputFmt: null };
+
+    // ── 1. TIPO ──────────────────────────────────
+    function selecionarTipo(tipo) {
+      STATE.tipo = tipo;
+      var lista = ['estagiario', 'clt', 'autonomo'];
+      for (var i = 0; i < lista.length; i++) {
+        var b = document.getElementById('btn-' + lista[i]);
+        if (b) { if (lista[i] === tipo) b.classList.add('selected'); else b.classList.remove('selected'); }
+      }
+      var lb = { estagiario: 'Estagiario', clt: 'CLT', autonomo: 'Autonomo' };
+      var badge = document.getElementById('tipo-badge');
+      if (badge) { badge.textContent = lb[tipo] || tipo; badge.style.display = 'inline-flex'; }
+      var hint = document.getElementById('upload-hint');
+      if (hint) hint.style.display = 'none';
+      toast('Tipo selecionado: ' + (lb[tipo] || tipo), 'ok');
+    }
+
+    // ── 2. UPLOAD ────────────────────────────────
+    function clicarUpload() {
+      if (!STATE.tipo) {
+        toast('Selecione o tipo de contrato primeiro!', 'warn');
+        var ct = document.getElementById('card-tipo');
+        if (ct) ct.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      var fi = document.getElementById('file-input');
+      if (fi) fi.click();
+    }
+
+    function onDrop(e) {
+      e.preventDefault();
+      var dz = document.getElementById('dropzone');
+      if (dz) dz.classList.remove('hover');
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) processarArquivo(f);
+    }
+
+    function onFileSelect(e) {
+      var f = e.target && e.target.files && e.target.files[0];
+      if (f) processarArquivo(f);
+      if (e.target) e.target.value = '';
+    }
+
+    // ── Helper: formatar celula ──────────────────
+    function fv(v) {
+      if (v === null || v === undefined || v === '') return '';
+      if (typeof v === 'object' && v instanceof Date) {
+        var d = String(v.getDate()).padStart(2, '0');
+        var m = String(v.getMonth() + 1).padStart(2, '0');
+        return d + '/' + m + '/' + v.getFullYear();
+      }
+      // SheetJS retorna datas como string "YYYY-MM-DDTHH:mm:ss.000Z" com cellDates
+      var s = String(v).trim();
+      // Detectar se e uma data ISO e converter
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+        var parts = s.split('T')[0].split('-');
+        return parts[2] + '/' + parts[1] + '/' + parts[0];
+      }
+      return s;
+    }
+
+    // ── Ler celula por linha e coluna (base-1) ───
+    // rows = array de arrays retornado pelo SheetJS
+    function g(rows, linha, col) {
+      var r = rows[linha - 1];
+      if (!r) return '';
+      return fv(r[col - 1]);
+    }
+
+    // ── 3. PROCESSAR ARQUIVO ─────────────────────
+    function processarArquivo(file) {
+      if (!STATE.tipo) { toast('Selecione o tipo de contrato!', 'warn'); return; }
+      var ext = file.name.split('.').pop().toLowerCase();
+      if (ext !== 'xls' && ext !== 'xlsx') { toast('Use .xls ou .xlsx', 'err'); return; }
+      if (typeof XLSX === 'undefined') { toast('Biblioteca nao carregada. Verifique a internet.', 'err'); return; }
+
+      var dzI = document.getElementById('dz-icon');
+      var dzT = document.getElementById('dz-title');
+      var dzS = document.getElementById('dz-sub');
+      if (dzI) dzI.textContent = String.fromCharCode(0x23F3);
+      if (dzT) dzT.textContent = 'Lendo ' + file.name + '...';
+      if (dzS) dzS.textContent = '';
+
+      var reader = new FileReader();
+      reader.onerror = function () { toast('Erro ao ler arquivo.', 'err'); resetDZ(); };
+      reader.onload = function (ev) {
+        try {
+          var wb = XLSX.read(ev.target.result, { type: 'arraybuffer', cellDates: true, raw: false });
+          if (!wb || !wb.SheetNames || !wb.SheetNames.length) {
+            toast('Nao foi possivel ler o arquivo.', 'err'); resetDZ(); return;
+          }
+
+          // Ler primeira aba como matriz
+          var ws = wb.Sheets[wb.SheetNames[0]];
+          var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: false });
+
+          if (!rows || rows.length < 5) {
+            toast('Planilha sem dados.', 'err'); resetDZ(); return;
+          }
+
+          // =============================================
+          // MAPEAMENTO FICHA BERNHOEFT (estrutura fixa)
+          // Baseado na analise real do arquivo .xlsx
+          // Linha | Campo          | Coluna do valor
+          // -------|----------------|----------------
+          //  9    | Empresa         | E (5)
+          //  12   | Nome completo   | E (5)
+          //  14   | Nascimento      | E (5) | Naturalidade: S (19)
+          //  16   | Raca/Cor        | E (5)
+          //  18   | Estado Civil    | E (5)
+          //  20   | Pai             | H (8)
+          //  22   | Mae             | H (8)
+          //  24   | Deficiencia     | E (5) | Qual: R (18)
+          //  26   | Habilitacao     | E (5)
+          //  28   | RG              | E (5) | CPF: S (19)
+          //  30   | Orgao Expedor   | E (5) | Data RG: S (19)
+          //  33   | Titulo Eleitor  | E (5)
+          //  35   | Seg.Desemprego  | E (5) | Prim.Emprego: S (19)
+          //  38   | Certidao num    | H(8) livro:J(10) folha:K(11) data:L(12) cart.:O(15)
+          //  41   | Reservista      | E (5) | Grau instrucao: W (23)
+          //  43   | Endereco        | E (5)
+          //  45   | Bairro          | E (5) | Cidade: S (19) | CEP: Y (25)
+          //  47   | Telefone        | E (5) | Email: O (15)
+          //  53   | Conjuge         | E (5)
+          //  55   | Conjuge Nasc    | E (5) | CPF conjuge: O (15)
+          //  57   | Filho 1         | E (5)
+          //  59   | Filho1 Nasc     | E (5) | CPF: L (12)
+          //  61   | Filho 2         | E (5)
+          //  63   | Filho2 Nasc     | E (5) | CPF: L (12)
+          //  76   | Data Admissao   | E (5)
+          //  78   | Funcao          | E (5) | Lotacao/Depto: S (19)
+          //  80   | Filial          | E (5) | Contrato Exp.: I (9) | Dias: Q (17)
+          //  82   | Adiantamento    | E (5) | Sind: K (11)
+          //  84   | Horario         | E (5) | Exame: S (19)
+          //  86   | Vale Transp.    | E (5) | Centro Custo: M (13)
+          //  88   | Insalubridade   | E (5) | Periculosidade: I (9) | Ticket: O (15)
+          //  90   | Banco           | E (5)
+          //  93   | Plano Saude     | E (5) | Pensao: O (15)
+          // =============================================
+
+          var d = {
+            empresa: g(rows, 9, 5),
+            nome: g(rows, 12, 5),
+            nascimento: g(rows, 14, 5),
+            naturalidade: g(rows, 14, 19),
+            raca: g(rows, 16, 5),
+            estado_civil: g(rows, 18, 5),
+            pai: g(rows, 20, 8),
+            mae: g(rows, 22, 8),
+            deficiencia: g(rows, 24, 5),
+            deficiencia_qual: g(rows, 24, 18),
+            habilitacao: g(rows, 26, 5),
+            rg: g(rows, 28, 5),
+            cpf: g(rows, 28, 19),
+            rg_orgao: g(rows, 30, 5),
+            rg_expedicao: g(rows, 30, 19),
+            titulo: g(rows, 33, 5),
+            seguro: g(rows, 35, 5),
+            primeiro_emp: g(rows, 35, 19),
+            certidao_num: g(rows, 39, 8),
+            certidao_livro: g(rows, 39, 10),
+            certidao_folha: g(rows, 39, 11),
+            certidao_data: g(rows, 39, 12),
+            certidao_cartorio: g(rows, 38, 15),
+            reservista: g(rows, 41, 5),
+            grau: g(rows, 41, 23),
+            endereco: g(rows, 43, 5),
+            bairro: g(rows, 45, 5),
+            cidade: g(rows, 45, 19),
+            cep: g(rows, 45, 25),
+            fone: g(rows, 47, 5),
+            email: g(rows, 47, 15),
+            conjuge: g(rows, 53, 5),
+            conjuge_nasc: g(rows, 55, 9),
+            conjuge_cpf: g(rows, 55, 17),
+            filho1_nome: g(rows, 57, 5),
+            filho1_nasc: g(rows, 59, 5),
+            filho1_cpf: g(rows, 59, 12),
+            filho2_nome: g(rows, 61, 5),
+            filho2_nasc: g(rows, 63, 5),
+            filho2_cpf: g(rows, 63, 12),
+            admissao: g(rows, 77, 5),
+            funcao: g(rows, 79, 5),
+            departamento: g(rows, 79, 19),
+            filial: g(rows, 81, 5),
+            contrato_exp: g(rows, 81, 9),
+            dias_exp: g(rows, 81, 17),
+            adiantamento: g(rows, 83, 5),
+            sind: g(rows, 83, 11),
+            horario: g(rows, 85, 5),
+            exame: g(rows, 85, 19),
+            insalubridade: g(rows, 89, 5),
+            periculosidade: g(rows, 89, 9),
+            ticket: g(rows, 89, 15),
+            banco: g(rows, 91, 5),
+            pensao: g(rows, 94, 15),
+            salario: '',
+            pis: '',
+            ctps_num: '',
+            ctps_serie: '',
+            ctps_data: '',
+            ctps_local: '',
+            empresaId: ''
+          };
+
+          // Campos nao encontrados por posicao: busca por palavra-chave nas colunas B e E
+          var kmap = {
+            pis: ['pis', 'nit', 'pis/nit'],
+            ctps_num: ['ctps', 'carteira de trabalho'],
+            ctps_serie: ['serie ctps', 'ctps serie'],
+            ctps_data: ['expedicao ctps', 'ctps data'],
+            ctps_local: ['ctps local', 'ctps uf'],
+            salario: ['salario', 'bolsa', 'remuneracao', 'valor hora', 'valor do servico'],
+            contato: ['contato', 'pessoa de contato'],
+            telefone_emp: ['telefone empresa', 'fone empresa'],
+            email_emp: ['email empresa', 'e-mail empresa']
+          };
+
+          for (var campo in kmap) {
+            if (d[campo]) continue;
+            var termos = kmap[campo];
+            for (var ri = 0; ri < Math.min(rows.length, 200); ri++) {
+              var row = rows[ri];
+              if (!row) continue;
+              var rotB = String(row[1] || '').toLowerCase().replace(/\s+/g, ' ').trim();
+              var rotE = String(row[4] || '').toLowerCase().replace(/\s+/g, ' ').trim();
+              for (var ti = 0; ti < termos.length; ti++) {
+                var termo = termos[ti];
+                if (rotB.indexOf(termo) !== -1) {
+                  // Valor pode estar em E(4), H(7) ou outra coluna proxima
+                  var val = fv(row[4]) || fv(row[7]) || fv(row[18]) || '';
+                  if (val) { d[campo] = val; break; }
+                }
+                if (rotE.indexOf(termo) !== -1) {
+                  var val2 = fv(row[8]) || fv(row[18]) || '';
+                  if (val2) { d[campo] = val2; break; }
+                }
+              }
+              if (d[campo]) break;
+            }
+          }
+
+          // ====== CONVERSOES DE DADOS ======
+
+          // Etnia
+          var rc = String(d.raca || '').toLowerCase();
+          if (rc.indexOf('branc') !== -1) d.etniaId = '1';
+          else if (rc.indexOf('pret') !== -1) d.etniaId = '2';
+          else if (rc.indexOf('pard') !== -1) d.etniaId = '3';
+          else if (rc.indexOf('amarel') !== -1) d.etniaId = '4';
+          else if (rc.indexOf('indig') !== -1 || rc.indexOf('indíg') !== -1) d.etniaId = '5';
+          else d.etniaId = '';
+
+          // Estado Civil
+          var ec = String(d.estado_civil || '').toLowerCase();
+          if (ec.indexOf('solteir') !== -1) d.estadoCivilId = '0';
+          else if (ec.indexOf('casad') !== -1) d.estadoCivilId = '1';
+          else if (ec.indexOf('divorciad') !== -1) d.estadoCivilId = '2';
+          else if (ec.indexOf('viuv') !== -1 || ec.indexOf('viúv') !== -1) d.estadoCivilId = '3';
+          else if (ec.indexOf('separad') !== -1) d.estadoCivilId = '4';
+          else if (ec.indexOf('estavel') !== -1 || ec.indexOf('estável') !== -1) d.estadoCivilId = '5';
+          else if (ec.indexOf('outros') !== -1) d.estadoCivilId = '6';
+          else d.estadoCivilId = '';
+
+          // Grau Instrucao
+          var gi = String(d.grau || '').toLowerCase();
+          if (gi.indexOf('analfabeto') !== -1) d.grauInstrucaoId = '01';
+          else if (gi.indexOf('doutorado') !== -1 && gi.indexOf('pos') !== -1) d.grauInstrucaoId = '13';
+          else if (gi.indexOf('doutorado') !== -1) d.grauInstrucaoId = '11';
+          else if (gi.indexOf('mestrado') !== -1) d.grauInstrucaoId = '10';
+          else if (gi.indexOf('pos') !== -1 || gi.indexOf('pós') !== -1) d.grauInstrucaoId = '12';
+          else if (gi.indexOf('superior') !== -1 && (gi.indexOf('incompleto') !== -1 || gi.indexOf('cursando') !== -1)) d.grauInstrucaoId = '08';
+          else if (gi.indexOf('superior') !== -1 && gi.indexOf('completo') !== -1) d.grauInstrucaoId = '09';
+          else if (gi.indexOf('medio') !== -1 || gi.indexOf('médio') !== -1) {
+            if (gi.indexOf('incompleto') !== -1 || gi.indexOf('cursando') !== -1) d.grauInstrucaoId = '06';
+            else d.grauInstrucaoId = '07';
+          }
+          else if (gi.indexOf('fundamental') !== -1 && gi.indexOf('completo') !== -1) d.grauInstrucaoId = '05';
+          else if (gi.indexOf('6') !== -1 && gi.indexOf('9') !== -1) d.grauInstrucaoId = '04';
+          else if (gi.indexOf('5') !== -1) d.grauInstrucaoId = '02';
+          else d.grauInstrucaoId = '';
+
+          // CNH
+          d.cnh = d.habilitacao || '';
+          d.cnhCategoria = '';
+          d.cnhUf = '';
+          d.cnhEmissao = '';
+          d.cnhVencimento = '';
+          d.cnhPrimeiraHabilitacao = '';
+
+          // Deficiencia
+          var def = String(d.deficiencia || '').toLowerCase();
+          d.deficiencia = (def === 'sim' || def === '1') ? '1' : '0';
+          d.deficienciaFisica = '0';
+          d.deficienciaAuditiva = '0';
+          d.deficienciaVisual = '0';
+          d.deficienciaIntelectual = '0';
+          d.deficienciaMental = '0';
+          d.deficienciaReabilitado = '0';
+
+          for (var k_d in d) {
+            if (typeof d[k_d] === 'string' && k_d.toLowerCase().indexOf('email') === -1) {
+              d[k_d] = d[k_d].toUpperCase();
+            }
+          }
+
+          // Extrair DDD e número do campo fone (formato: (81) 99777-1169)
+          var foneBruto = d.fone || '';
+          var matchDDD = foneBruto.match(/\((\d{1,3})\)/);
+          d.dddCelular = matchDDD ? matchDDD[1] : '';
+          var foneSemDDD = foneBruto.replace(/\(\d{1,3}\)\s*/, '');
+          var celDigitos = foneSemDDD.replace(/\D/g, '');
+          d.celular = celDigitos.length > 4 ? celDigitos.slice(0, celDigitos.length - 4) + '-' + celDigitos.slice(celDigitos.length - 4) : celDigitos;
+
+          // Formatar CPF
+          var cpfL = String(d.cpf || '').replace(/\D/g, '').substring(0, 11);
+          if (cpfL) {
+            d.cpf = cpfL.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+          }
+
+          STATE.dados = d;
+
+          // Atualizar visual do dropzone
+          var dz = document.getElementById('dropzone');
+          if (dz) dz.classList.add('loaded');
+          if (dzI) dzI.textContent = String.fromCharCode(0x2705);
+          if (dzT) dzT.textContent = file.name;
+          if (dzS) dzS.textContent = Math.round(file.size / 1024) + ' KB - Importado com sucesso!';
+
+          mostrarPreview(d);
+
+        } catch (err) {
+          console.error('[Bernhoeft] Erro:', err);
+          toast('Erro ao processar: ' + err.message, 'err');
+          resetDZ();
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function resetDZ() {
+      var dz = document.getElementById('dropzone');
+      if (dz) dz.classList.remove('loaded', 'hover');
+      var dzI = document.getElementById('dz-icon');
+      var dzT = document.getElementById('dz-title');
+      var dzS = document.getElementById('dz-sub');
+      if (dzI) dzI.textContent = '&#128194;';
+      if (dzT) dzT.textContent = 'Clique aqui para selecionar a planilha';
+      if (dzS) dzS.textContent = 'ou arraste o arquivo . .xls / .xlsx';
+      var fi = document.getElementById('file-input');
+      if (fi) fi.value = '';
+    }
+
+    // ── 4. PREVIEW com edicao inline ─────────────
+
+    // Todas as secoes e campos do preview
+    var SECOES_PREVIEW = [
+      {
+        titulo: 'Dados da Empresa', campos: [
+          { k: 'empresa', l: 'Empresa' },
+          { k: 'empresaId', l: 'ID da Empresa (sistema)' }
+        ]
+      },
+      {
+        titulo: 'Dados Pessoais', campos: [
+          { k: 'nome', l: 'Nome Completo' },
+          { k: 'nascimento', l: 'Data de Nascimento' },
+          { k: 'naturalidade', l: 'Naturalidade' },
+          {
+            k: 'estadoCivilId', l: 'Estado Civil', options: [
+              { v: '', t: 'Selecione...' },
+              { v: '0', t: '0 - Solteiro' },
+              { v: '1', t: '1 - Casado' },
+              { v: '2', t: '2 - Divorciado' },
+              { v: '3', t: '3 - Viúvo' },
+              { v: '4', t: '4 - Separado judicialmente' },
+              { v: '5', t: '5 - União estável' },
+              { v: '6', t: '6 - Outros' }
+            ]
+          },
+          {
+            k: 'etniaId', l: 'Raca/Cor (Etnia)', options: [
+              { v: '', t: 'Selecione...' }, { v: '1', t: '1 - Branca' }, { v: '2', t: '2 - Preta' },
+              { v: '3', t: '3 - Parda' }, { v: '4', t: '4 - Amarela' }, { v: '5', t: '5 - Indigena' }
+            ]
+          },
+          {
+            k: 'grauInstrucaoId', l: 'Grau de Instrucao', options: [
+              { v: '', t: 'Selecione...' }, { v: '01', t: '01 - Analfabeto' }, { v: '02', t: '02 - Ate 5o ano completo' },
+              { v: '04', t: '04 - 6o ao 9o ano inc.' }, { v: '05', t: '05 - Fundamental comp.' },
+              { v: '06', t: '06 - Medio incompleto' }, { v: '07', t: '07 - Medio completo' },
+              { v: '08', t: '08 - Superior incompleto' }, { v: '09', t: '09 - Superior completo' },
+              { v: '10', t: '10 - Mestrado' }, { v: '11', t: '11 - Doutorado' },
+              { v: '12', t: '12 - Pos-graduacao' }, { v: '13', t: '13 - Pos-doutorado' }
+            ]
+          },
+          { k: 'deficiencia', l: 'Deficiencia (Geral)', options: [{ v: '0', t: 'Nao' }, { v: '1', t: 'Sim' }] },
+          { k: 'deficienciaFisica', l: 'Defic. Fisica', options: [{ v: '0', t: 'Nao' }, { v: '1', t: 'Sim' }] },
+          { k: 'deficienciaAuditiva', l: 'Defic. Auditiva', options: [{ v: '0', t: 'Nao' }, { v: '1', t: 'Sim' }] },
+          { k: 'deficienciaVisual', l: 'Defic. Visual', options: [{ v: '0', t: 'Nao' }, { v: '1', t: 'Sim' }] },
+          { k: 'deficienciaIntelectual', l: 'Defic. Intelectual', options: [{ v: '0', t: 'Nao' }, { v: '1', t: 'Sim' }] },
+          { k: 'deficienciaMental', l: 'Defic. Mental', options: [{ v: '0', t: 'Nao' }, { v: '1', t: 'Sim' }] },
+          { k: 'deficienciaReabilitado', l: 'Reabilitado', options: [{ v: '0', t: 'Nao' }, { v: '1', t: 'Sim' }] }
+        ]
+      },
+      {
+        titulo: 'Documentos', campos: [
+          { k: 'cpf', l: 'CPF' },
+          { k: 'rg', l: 'RG' },
+          { k: 'rg_orgao', l: 'Orgao Expedidor' },
+          { k: 'rg_expedicao', l: 'Data Emissao RG' },
+          { k: 'pis', l: 'PIS/NIT' },
+          { k: 'reservista', l: 'Reservista' },
+          { k: 'titulo', l: 'Titulo de Eleitor' },
+          { k: 'ctps_num', l: 'CTPS Numero' },
+          { k: 'ctps_serie', l: 'CTPS Serie' },
+          { k: 'ctps_data', l: 'CTPS Data' },
+          { k: 'ctps_local', l: 'CTPS Local/UF' },
+          { k: 'cnh', l: 'CNH Numero' },
+          { k: 'cnhCategoria', l: 'CNH Categoria' },
+          { k: 'cnhUf', l: 'CNH UF' },
+          { k: 'cnhEmissao', l: 'CNH Emissao' },
+          { k: 'cnhVencimento', l: 'CNH Vencimento' },
+          { k: 'cnhPrimeiraHabilitacao', l: 'CNH Primeira Hab.' },
+          { k: 'certidao_num', l: 'Certidao Numero' },
+          { k: 'certidao_livro', l: 'Certidao Livro' },
+          { k: 'certidao_folha', l: 'Certidao Folha' },
+          { k: 'certidao_data', l: 'Certidao Data' }
+        ]
+      },
+      {
+        titulo: 'Endereco', campos: [
+          {
+            k: 'enderecoCidadeId',
+            l: 'CIDADE',
+            options: [
+              { v: '', t: 'Selecione...' },
+              { v: '2611606', t: 'Recife' },
+              { v: '2609600', t: 'Olinda' },
+              { v: '2607901', t: 'Jaboatão dos Guararapes' },
+              { v: 'outros', t: 'Outros (digite o ID)' }
+            ],
+            allowOther: true
+          },
+          {
+            k: 'enderecoLogradouroId',
+            l: 'Logradouro',
+            options: [
+              { v: '', t: 'Selecione...' },
+              { v: '0', t: '0 - Nenhum' },
+              { v: '1', t: '1 - Aeroporto' },
+              { v: '2', t: '2 - Alameda' },
+              { v: '3', t: '3 - Área' },
+              { v: '4', t: '4 - Avenida' },
+              { v: '5', t: '5 - Balneário' },
+              { v: '6', t: '6 - Beco' },
+              { v: '7', t: '7 - Bloco' },
+              { v: '8', t: '8 - Campo' },
+              { v: '9', t: '9 - Chácara' },
+              { v: '10', t: '10 - Colônia' },
+              { v: '11', t: '11 - Condomínio' },
+              { v: '12', t: '12 - Conjunto' },
+              { v: '13', t: '13 - Distrito' },
+              { v: '14', t: '14 - Esplanada' },
+              { v: '15', t: '15 - Estação' },
+              { v: '16', t: '16 - Estrada' },
+              { v: '17', t: '17 - Favela' },
+              { v: '18', t: '18 - Fazenda' },
+              { v: '19', t: '19 - Feira' },
+              { v: '20', t: '20 - Galeria' },
+              { v: '21', t: '21 - Granja' },
+              { v: '22', t: '22 - Jardim' },
+              { v: '23', t: '23 - Ladeira' },
+              { v: '24', t: '24 - Lago' },
+              { v: '25', t: '25 - Lagoa' },
+              { v: '26', t: '26 - Largo' },
+              { v: '27', t: '27 - Loteamento' },
+              { v: '28', t: '28 - Morro' },
+              { v: '29', t: '29 - Núcleo' },
+              { v: '30', t: '30 - Outros' },
+              { v: '31', t: '31 - Parque' },
+              { v: '32', t: '32 - Passarela' },
+              { v: '33', t: '33 - Pátio' },
+              { v: '34', t: '34 - Praça' },
+              { v: '35', t: '35 - Praia' },
+              { v: '36', t: '36 - Quadra' },
+              { v: '37', t: '37 - Recanto' },
+              { v: '38', t: '38 - Residencial' },
+              { v: '39', t: '39 - Rodovia' },
+              { v: '40', t: '40 - Rua' },
+              { v: '41', t: '41 - Setor' },
+              { v: '42', t: '42 - Sítio' },
+              { v: '43', t: '43 - Travessa' },
+              { v: '44', t: '44 - Trecho' },
+              { v: '45', t: '45 - Trevo' },
+              { v: '46', t: '46 - Vale' },
+              { v: '47', t: '47 - Vereda' },
+              { v: '48', t: '48 - Via' },
+              { v: '49', t: '49 - Viaduto' },
+              { v: '50', t: '50 - Viela' },
+              { v: '51', t: '51 - Vila' }
+            ]
+          },
+          { k: 'endereco', l: 'Nome do Logradouro' },
+          { k: 'enderecoNumero', l: 'Numero' },
+          { k: 'bairro', l: 'Bairro' },
+          { k: 'cep', l: 'CEP' },
+          { k: 'dddCelular', l: 'DDD' },
+          { k: 'celular', l: 'Celular' },
+          { k: 'email', l: 'E-mail Pessoal' }
+        ]
+      },
+      {
+        titulo: 'Dependentes', campos: [
+          { k: 'conjuge', l: 'Conjuge' },
+          { k: 'conjuge_nasc', l: 'Nasc. Conjuge' },
+          { k: 'conjuge_cpf', l: 'CPF Conjuge' }
+        ]
+      },
+      {
+        titulo: 'Processo de Admissao', campos: [
+          { k: 'admissao', l: 'Data de Admissao' },
+          {
+            k: 'contratoTipoId', 
+            l: 'Tipo Contrato ID',
+            options: [
+              { v: '0', t: '0 - Não informado' },
+              { v: '1', t: '1 - Prazo indeterminado' },
+              { v: '2', t: '2 - Prazo determinado definido em dias com cláusula assecuratória de direito recíproco de rescisão antecipada' },
+              { v: '3', t: '3 - Prazo determinado definido em dias sem cláusula assecuratória de direito recíproco de rescisão antecipada' },
+              { v: '4', t: '4 - Prazo determinado vinculado à ocorrência de um fato com cláusula assecuratória de direito recíproco de rescisão antecipada' },
+              { v: '5', t: '5 - Prazo determinado vinculado à ocorrência de um fato sem cláusula assecuratória de direito recíproco de rescisão antecipada' }
+            ]
+          },
+          { k: 'categoriaeSocialId', l: 'Categoria eSocial ID' },
+          { k: 'classeId', l: 'Classe ID' },
+          { k: 'salario', l: 'Salario/Bolsa' },
+          { k: 'funcao', l: 'Funcao/Cargo' },
+          { k: 'departamento', l: 'Departamento/Lotacao' },
+          { k: 'horario', l: 'Horario de Trabalho' },
+          { k: 'filial', l: 'Filial' },
+          { k: 'contrato_exp', l: 'Contrato Experiencia' },
+          { k: 'dias_exp', l: 'Dias Experiencia' },
+          { k: 'adiantamento', l: 'Recebe Adiantamento' },
+          { k: 'percentualAdiantamento', l: 'Percentual Adiantamento (%)' },
+          { k: 'insalubridade', l: 'Insalubridade' },
+          { k: 'periculosidade', l: 'Periculosidade' },
+          { k: 'obs', l: 'Observacoes' }
+        ]
+      }
+    ];
+
+    // Atualiza STATE.dados quando usuario edita um campo
+    function atualizarCampo(campo, novoValor) {
+      if (!STATE.dados) STATE.dados = {};
+      STATE.dados[campo] = novoValor;
+      // Marcar input como alterado
+      var inp = document.getElementById('inp-' + campo);
+      if (inp) {
+        if (novoValor !== (STATE._original && STATE._original[campo] || '')) {
+          inp.classList.add('modified');
+        } else {
+          inp.classList.remove('modified');
+        }
+      }
+    }
+
+    function mostrarPreview(d) {
+      // Salvar copia original para comparar alteracoes
+      STATE._original = {};
+      for (var k in d) STATE._original[k] = d[k];
+
+      var wrap = document.getElementById('preview-badge-wrap');
+      var tl = { estagiario: 'Estagiario', clt: 'CLT', autonomo: 'Autonomo' };
+      if (wrap) {
+        wrap.innerHTML =
+          '<div class="preview-top-bar">'
+          + '<div class="preview-badge">' + (tl[STATE.tipo] || STATE.tipo) + '</div>'
+          + '<div class="preview-edit-hint">&#9998; Clique em qualquer campo para editar</div>'
+          + '</div>';
+      }
+
+      var cont = document.getElementById('preview-container');
+      if (!cont) return;
+      cont.innerHTML = '';
+
+      for (var s = 0; s < SECOES_PREVIEW.length; s++) {
+        var sec = SECOES_PREVIEW[s];
+        var div = document.createElement('div');
+        div.className = 'preview-section';
+
+        var hd = document.createElement('div');
+        hd.className = 'preview-sec-head';
+        hd.textContent = sec.titulo;
+        div.appendChild(hd);
+
+        var fl = document.createElement('div');
+        fl.className = 'preview-fields';
+
+        for (var c = 0; c < sec.campos.length; c++) {
+          (function (cfg) {
+            var val = d[cfg.k] || '';
+            var fd = document.createElement('div');
+            fd.className = 'preview-field editable';
+
+            var lbl = document.createElement('label');
+            lbl.setAttribute('for', 'inp-' + cfg.k);
+            lbl.textContent = cfg.l;
+
+            var inputWrap = document.createElement('div');
+            inputWrap.className = 'input-wrap';
+
+            var inp;
+            if (cfg.options) {
+              inp = document.createElement('select');
+              inp.id = 'inp-' + cfg.k;
+              inp.className = 'field-input select-input' + (val ? '' : ' empty');
+              inp.setAttribute('data-campo', cfg.k);
+              var foundMatch = false;
+              for (var o = 0; o < cfg.options.length; o++) {
+                var opt = document.createElement('option');
+                opt.value = cfg.options[o].v;
+                opt.textContent = cfg.options[o].t;
+                if (val === cfg.options[o].v) {
+                  opt.selected = true;
+                  foundMatch = true;
+                }
+                inp.appendChild(opt);
+              }
+            } else {
+              inp = document.createElement('input');
+              inp.type = 'text';
+              inp.id = 'inp-' + cfg.k;
+              inp.className = 'field-input' + (val ? '' : ' empty');
+              if (cfg.k.toLowerCase().indexOf('email') === -1) {
+                inp.style.textTransform = 'uppercase';
+              }
+              inp.value = val;
+              inp.placeholder = 'Nao informado — clique para preencher';
+              inp.setAttribute('data-campo', cfg.k);
+              inp.setAttribute('autocomplete', 'off');
+            }
+
+            inp.addEventListener('input', function () {
+              var campo = this.getAttribute('data-campo');
+              atualizarCampo(campo, this.value);
+              this.classList.remove('empty');
+              if (!this.value) this.classList.add('empty');
+            });
+
+            inp.addEventListener('focus', function () {
+              this.parentElement.classList.add('focused');
+            });
+            inp.addEventListener('blur', function () {
+              this.parentElement.classList.remove('focused');
+            });
+
+            // Icone de edicao
+            var ico = document.createElement('span');
+            ico.className = 'edit-ico';
+            ico.innerHTML = '&#9998;';
+            ico.title = 'Editar campo';
+            ico.onclick = function () { inp.focus(); inp.select(); };
+
+            inputWrap.appendChild(inp);
+            inputWrap.appendChild(ico);
+            fd.appendChild(lbl);
+            fd.appendChild(inputWrap);
+
+            if (cfg.allowOther) {
+              var outrosInp = document.createElement('input');
+              outrosInp.type = 'text';
+              outrosInp.id = 'inp-other-' + cfg.k;
+              outrosInp.className = 'field-input';
+              outrosInp.placeholder = 'Digite a numeracao do ID...';
+              outrosInp.style.marginTop = '6px';
+
+              if (val && !foundMatch) {
+                inp.value = 'outros';
+                inp.classList.remove('empty');
+                outrosInp.value = val;
+                outrosInp.style.display = 'block';
+              } else {
+                outrosInp.style.display = 'none';
+              }
+
+              inp.addEventListener('change', function () {
+                if (this.value === 'outros') {
+                  outrosInp.style.display = 'block';
+                  outrosInp.focus();
+                  atualizarCampo(cfg.k, outrosInp.value);
+                } else {
+                  outrosInp.style.display = 'none';
+                  atualizarCampo(cfg.k, this.value);
+                }
+              });
+
+              outrosInp.addEventListener('input', function () {
+                atualizarCampo(cfg.k, this.value);
+              });
+
+              fd.appendChild(outrosInp);
+            }
+
+            fl.appendChild(fd);
+          })(sec.campos[c]);
+        }
+
+        div.appendChild(fl);
+        cont.appendChild(div);
+      }
+
+      var cp = document.getElementById('card-preview');
+      if (cp) {
+        cp.style.display = '';
+        setTimeout(function () { cp.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 120);
+      }
+      toast('Planilha importada! Edite os campos se necessario.', 'ok');
+    }
+
+    // Coletar todos os valores dos inputs antes de gerar
+    function coletarEdicoes() {
+      var inputs = document.querySelectorAll('.field-input');
+      for (var i = 0; i < inputs.length; i++) {
+        var campo = inputs[i].getAttribute('data-campo');
+        if (campo && STATE.dados) {
+          var val = inputs[i].value.trim();
+
+          if (inputs[i].tagName === 'SELECT' && val === 'outros') {
+            var oInp = document.getElementById('inp-other-' + campo);
+            if (oInp) val = oInp.value.trim();
+          }
+
+          if (inputs[i].tagName !== 'SELECT' && campo.toLowerCase().indexOf('email') === -1) {
+            val = val.toUpperCase();
+          }
+
+          // Garantir formatacao de campos especificos
+          if (campo === 'cpf') {
+            var cL = val.replace(/\D/g, '').substring(0, 11);
+            if (cL) val = cL.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+          } else if (campo === 'cep') {
+            var cepL = val.replace(/\D/g, '').substring(0, 8);
+            if (cepL.length > 5) val = cepL.slice(0, 5) + '-' + cepL.slice(5);
+            else val = cepL;
+          } else if (campo === 'celular') {
+            var celL = val.replace(/\D/g, '');
+            if (celL.length > 4) val = celL.slice(0, celL.length - 4) + '-' + celL.slice(celL.length - 4);
+            else val = celL;
+          }
+
+          STATE.dados[campo] = val;
+        }
+      }
+    }
+
+    // ── 5. GERAR OUTPUT ──────────────────────────
+    function gerarOutput() {
+      if (!STATE.dados || !STATE.tipo) { toast('Sem dados.', 'err'); return; }
+
+      // Coletar todos os valores editados antes de gerar
+      coletarEdicoes();
+
+      var btn = document.getElementById('btn-gerar');
+      if (btn) { btn.disabled = true; btn.textContent = 'Gerando...'; }
+
+      setTimeout(function () {
+        try {
+          var d = STATE.dados;
+          if (STATE.tipo === 'autonomo') {
+            STATE.outputStr = gerarCSV(d);
+            STATE.outputFmt = 'csv';
+          } else {
+            STATE.outputStr = JSON.stringify(gerarJSON(d, STATE.tipo), null, 2);
+            STATE.outputFmt = 'json';
+          }
+
+          var pre = document.getElementById('output-pre');
+          if (pre) pre.textContent = STATE.outputStr;
+
+          var badge = document.getElementById('output-badge');
+          if (badge) {
+            badge.className = 'output-fmt-badge ' + STATE.outputFmt;
+            badge.textContent = STATE.outputFmt === 'json' ? 'JSON - Pronto para importacao' : 'CSV - Pronto para importacao';
+          }
+
+          var sub = document.getElementById('output-subtitle');
+          if (sub) sub.textContent = 'Copie ou baixe o arquivo abaixo para importar no sistema de RH.';
+
+          var co = document.getElementById('card-output');
+          if (co) {
+            co.style.display = '';
+            setTimeout(function () { co.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+          }
+          toast('Arquivo gerado com sucesso!', 'ok');
+        } catch (err) {
+          console.error(err);
+          toast('Erro ao gerar: ' + err.message, 'err');
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = 'Gerar Arquivo de Importacao'; }
+        }
+      }, 60);
+    }
+
+    // ── Helpers ──────────────────────────────────
+    function lp(v) { return String(v || '').replace(/\D/g, ''); }
+    function ps(v) { if (!v) return 0; return parseFloat(String(v).replace(/\./g, '').replace(',', '.')) || 0; }
+
+    // ── JSON ─────────────────────────────────────
+    function gerarJSON(d, tipo) {
+      return [{
+        "tipo": "0",
+        "empresaId": d.empresaId || "0",
+        "funcionarioContribuinteId": 0,
+        "funcionarioId": "",
+        "nome": d.nome || "PAULA CRISTIANA DA SILVA",
+        "nomeSocial": "",
+        "email": d.email || "pcsilva12@hotmail.com",
+        "enderecoCep": d.cep || "54440-070",
+        "enderecoLogradouroId": d.enderecoLogradouroId || "",
+        "endereco": d.endereco || "AV. MANOLO CORTIZO, 5292 - ED. LADY FLORY - APT 102",
+        "enderecoNumero": d.enderecoNumero || "",
+        "enderecoComplemento": "",
+        "enderecoBairro": d.bairro || "CANDEIAS",
+        "enderecoCidadeId": d.enderecoCidadeId || "",
+        "dddTelefone": null,
+        "telefone": null,
+        "dddCelular": d.dddCelular || "",
+        "celular": (function (v) { var n = String(v || '').replace(/\D/g, ''); return n.length > 4 ? n.slice(0, n.length - 4) + '-' + n.slice(n.length - 4) : n; })(d.celular),
+        "estrangeiroEnderecoPaisId": null,
+        "estrangeiroEndereco": null,
+        "estrangeiroEnderecoNumero": null,
+        "estrangeiroComplemento": null,
+        "estrangeiroEnderecoBairro": null,
+        "estrangeiroEnderecoCidade": null,
+        "estrangeiroEnderecoCodPostal": null,
+        "tipoSanguineoId": "",
+        "etniaId": d.etniaId || "0",
+        "cabeloCorId": null,
+        "olhoCorId": null,
+        "sexo": "0",
+        "altura": null,
+        "peso": null,
+        "sinaisCorpo": null,
+        "ehDeficiente": d.deficiencia || "0",
+        "deficienciaCota": "0",
+        "deficienciaFisica": d.deficienciaFisica || "0",
+        "deficienciaAuditiva": d.deficienciaAuditiva || "0",
+        "deficienciaVisual": d.deficienciaVisual || "0",
+        "deficienciaIntelectual": d.deficienciaIntelectual || "0",
+        "deficienciaMental": d.deficienciaMental || "0",
+        "deficienciaReabilitado": d.deficienciaReabilitado || "0",
+        "deficienciaObservacao": "",
+        "paisNascimentoId": "30",
+        "nascimentoCidadeId": "",
+        "estadoCivilId": d.estadoCivilId || "0",
+        "nascimentoData": d.nascimento || "12/11/1973",
+        "grauInstrucaoId": d.grauInstrucaoId || "",
+        "paisNacionalidadeId": "30",
+        "estrangeiroDataChegadaBrasil": null,
+        "estrangeiroCasadoComBrasileiro": null,
+        "estrangeiroComFilhoBrasileiro": null,
+        "rneNumero": null,
+        "rneOrgaoEmissor": null,
+        "rneEmissao": null,
+        "estrangeiroCondicaoIngresso": null,
+        "estrangeiroTipoResidencia": null,
+        "admissaoData": d.admissao || new Date().toLocaleDateString('pt-BR'),
+        "cadastroData": new Date().toLocaleDateString('pt-BR'),
+        "admissaoTipoId": "1",
+        "contratoTipoId": d.contratoTipoId || "0",
+        "ocupacaoNaturezaId": "0",
+        "cnpjEmpresaAnterior": null,
+        "transferenciaOnus": null,
+        "transferenciaData": null,
+        "adicionalTempoServicoInicio": null,
+        "aposentadoriaData": null,
+        "desligamentoData": null,
+        "cpf": d.cpf || "77059336400",
+        "rg": d.rg || "",
+        "rgOrgaoEmissor": d.rg_orgao || "",
+        "rgEmissao": d.rg_expedicao || "",
+        "rgUf": "",
+        "tituloEleitor": d.titulo || "",
+        "tituloEleitorZona": "",
+        "tituloEleitorSecao": "",
+        "pisNumero": d.pis || "",
+        "pisEmissao": "",
+        "certificadoReservista": d.reservista || "",
+        "registroCivilId": "0",
+        "registroCivilTermoMatricula": d.certidao_num || "",
+        "registroCivilCartorio": d.certidao_cartorio || "",
+        "registroCivilLivro": d.certidao_livro || "",
+        "registroCivilFolha": d.certidao_folha || "",
+        "registroCivilCidadeId": "",
+        "registroCivilEmissao": d.certidao_data || null,
+        "carteiraTrabalho": d.ctps_num || "",
+        "carteiraTrabalhoSerie": d.ctps_serie || "",
+        "carteiraTrabalhoSerieDigito": "",
+        "carteiraTrabalhoEmissao": d.ctps_data || "",
+        "carteiraTrabalhoUf": d.ctps_local || "",
+        "cnh": d.cnh || d.habilitacao || "",
+        "cnhUf": d.cnhUf || "",
+        "cnhCategoria": d.cnhCategoria || "",
+        "cnhEmissao": d.cnhEmissao || "",
+        "cnhVencimento": d.cnhVencimento || "",
+        "cnhPrimeiraHabilitacao": d.cnhPrimeiraHabilitacao || "",
+        "ricNumero": "",
+        "ricOrgaoEmissor": "",
+        "ricEmissao": "",
+        "maeNome": d.mae || "MARIA LUISA DA SILVA",
+        "paiNome": d.pai || "JOSE EDVALDO DA SILVA",
+        "conjugeNome": d.conjuge || "",
+        "conjugeNascimentoCidadeId": "",
+        "conjugeNascimentoData": d.conjuge_nasc || "",
+        "categoriaeSocialId": d.categoriaeSocialId || (tipo === "clt" ? "101" : (tipo === "estagiario" ? "901" : "")),
+        "fgtsOcorrenciaId": "0",
+        "fgtsConta": null,
+        "regimePrevidenciario": "1",
+        "sindicatoId": null,
+        "sindicalizado": d.sind === "Sim" ? "1" : "0",
+        "classeId": d.classeId || "",
+        "centroCustoId": null,
+        "departamentoId": null,
+        "cartaoPonto": null,
+        "fichaRegistro": null,
+        "livro": null,
+        "folha": null,
+        "regimeJornadaTrabalhoId": "1",
+        "tipoJornada": "4",
+        "tipoJornadaDescricao": d.horario || "",
+        "horarioNoturno": "0",
+        "tipoEscalaId": "",
+        "descansoSemanalId": "0",
+        "quadroHorarioId": "",
+        "cargoId": "",
+        "ocNumero": "",
+        "ocOrgaoEmissor": "",
+        "ocEmissao": "",
+        "ocValidade": "",
+        "formaPagamento": "0",
+        "funcionarioTipoId": "2",
+        "salarioInicial": d.salario ? String(ps(d.salario)) : "0",
+        "percentualComissao": "0",
+        "horaMensal": null,
+        "horaSemanal": null,
+        "horaDiaria": null,
+        "insalubridadeAdicional": d.insalubridade ? parseFloat(d.insalubridade) : null,
+        "insalubridadeIncidenciaId": "0",
+        "periculosidadeAdicional": d.periculosidade ? parseFloat(d.periculosidade) : null,
+        "periculosidadeIncidenciaId": "0",
+        "noturnoAdicional": null,
+        "noturnoIncidenciaId": "0",
+        "valorPrevidenciaPrivada": "",
+        "valorPrevidenciaPrivada13": "",
+        "prazoExperiencia": d.dias_exp || "60",
+        "prazoExperienciaFim": null,
+        "prazoExperienciaProrrogacao": "30",
+        "prazoExperienciaProrrogacaoFim": "",
+        "bancoId": "",
+        "bancoContaAgencia": "",
+        "bancoConta": "",
+        "bancoContaDigito": "",
+        "bancoContaTipoId": "1",
+        "bancoModoPagamento": "0",
+        "cartaoSalario": "",
+        "recebeValeRefeicao": "0",
+        "cartaoVR": null,
+        "recebeValeAlimentacao": "",
+        "cartaoVA": null,
+        "recebeValeTransporte": "0",
+        "cartaoVT": null,
+        "percentualAdiantamento": d.percentualAdiantamento || "50",
+        "contribuicaoSindical": "0",
+        "recebeAdiantamento": d.adiantamento === "Sim" ? "1" : "1",
+        "regimeTempoParcial": "0",
+        "beneficioDesemprego": d.seguro === "Sim" ? "1" : "0",
+        "observacao": d.obs || null,
+        "qualificacaoStatus": null,
+        "qualificacaoMensagem": null,
+        "qualificacaoOrientacao": null,
+        "matriculaAnterior": null,
+        "idAdmissaoPreliminar": null,
+        "vIdAdmissaoPreliminar": null,
+        "numeroRecibo": null,
+        "dataIntegracao": new Date().toLocaleDateString('pt-BR'),
+        "matriculaeSocial": null,
+        "dataReintegracao": null
+      }];
+    }
+
+    // ── CSV (Autonomo) ───────────────────────────
+    function gerarCSV(d) {
+      var row = []; for (var i = 0; i < 42; i++) row.push('');
+      var tel = lp(d.fone || d.telefone_emp || '');
+      row[0] = lp(d.cpf); row[1] = d.nome || ''; row[2] = lp(d.cep);
+      row[3] = 'Rua'; row[4] = d.endereco || ''; row[5] = 'S/N'; row[7] = d.bairro || '';
+      if (tel.length >= 10) { row[10] = tel.slice(0, 2); row[11] = tel.slice(2); }
+      row[14] = d.email || ''; row[15] = d.nascimento || ''; row[18] = d.mae || '';
+      row[19] = '07'; row[21] = '0';
+      row[22] = d.rg || ''; row[23] = d.rg_orgao || ''; row[24] = d.rg_expedicao || '';
+      row[26] = d.reservista || ''; row[27] = d.titulo || '';
+      row[31] = d.ctps_num || ''; row[32] = d.ctps_serie || ''; row[34] = d.ctps_data || '';
+      row[36] = d.pis || ''; row[37] = '3532-30'; row[38] = '13'; row[39] = '712'; row[40] = '20'; row[41] = '20';
+      return row.join(';') + ';';
+    }
+
+    // ── 6. COPIAR / BAIXAR ───────────────────────
+    function copiar() {
+      if (!STATE.outputStr) return;
+      var ok = function () {
+        var b = document.getElementById('btn-copy');
+        if (b) { b.classList.add('ok'); b.textContent = 'Copiado!'; }
+        toast('Copiado!', 'ok');
+        setTimeout(function () { if (b) { b.classList.remove('ok'); b.textContent = 'Copiar'; } }, 2500);
+      };
+      if (navigator.clipboard) { navigator.clipboard.writeText(STATE.outputStr).then(ok, copiarFallback); }
+      else { copiarFallback(); if (ok) ok(); }
+    }
+    function copiarFallback() {
+      var ta = document.createElement('textarea');
+      ta.value = STATE.outputStr;
+      ta.style.cssText = 'position:fixed;opacity:0;';
+      document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    function baixar() {
+      if (!STATE.outputStr) return;
+      var nm = (STATE.dados && STATE.dados.nome ? STATE.dados.nome : 'Colaborador').replace(/[^a-zA-Z0-9 ]/g, '').trim().replace(/\s+/g, '_');
+      var ts = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
+      var ext = STATE.outputFmt === 'csv' ? 'csv' : 'json';
+      var fn = 'Importacao_' + nm + '_' + ts + '.' + ext;
+      var blob = new Blob([STATE.outputStr], { type: STATE.outputFmt === 'csv' ? 'text/csv' : 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = fn; document.body.appendChild(a); a.click();
+      setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+      toast('Arquivo "' + fn + '" baixado!', 'ok');
+    }
+
+    // ── 7. REINICIAR ─────────────────────────────
+    function reiniciar() {
+      STATE.tipo = null; STATE.dados = null; STATE.outputStr = null; STATE.outputFmt = null;
+      ['estagiario', 'clt', 'autonomo'].forEach(function (t) {
+        var b = document.getElementById('btn-' + t); if (b) b.classList.remove('selected');
+      });
+      var badge = document.getElementById('tipo-badge');
+      if (badge) { badge.style.display = 'none'; badge.textContent = ''; }
+      var hint = document.getElementById('upload-hint');
+      if (hint) hint.style.display = '';
+      resetDZ();
+      var cp = document.getElementById('card-preview');
+      if (cp) { cp.style.display = 'none'; var pc = document.getElementById('preview-container'); if (pc) pc.innerHTML = ''; }
+      var co = document.getElementById('card-output');
+      if (co) { co.style.display = 'none'; var op = document.getElementById('output-pre'); if (op) op.textContent = ''; }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast('Pronto para nova importacao.', '');
+    }
+
+    // ── 8. TOAST ─────────────────────────────────
+    var _tt = null;
+    function toast(msg, tipo) {
+      var el = document.getElementById('toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.className = 'toast show' + (tipo ? ' ' + tipo : '');
+      clearTimeout(_tt);
+      _tt = setTimeout(function () { el.className = 'toast'; }, 3500);
+    }
+  </script>
+</body>
+
+</html>
